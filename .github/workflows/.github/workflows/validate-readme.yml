@@ -1,0 +1,22 @@
+name: Validate README Markers
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Markers Exist
+        run: |
+          if ! grep -q "<!-- RECENT_ACTIVITY:START -->" README.md || ! grep -q "<!-- RECENT_ACTIVITY:END -->" README.md; then
+            echo "::error::README markers are missing! Automated update cannot proceed."
+            exit 1
+          fi
+          echo "All markers verified successfully."
