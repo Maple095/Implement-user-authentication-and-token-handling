@@ -30,7 +30,7 @@ jobs:
         run: |
           RAW_LOGS=$(git log -5 --pretty=format:"- %ad \`%h\` %s" --date=short --invert-grep --grep="chore: update recent activity")
           NEW_BLOCK="<!-- RECENT_ACTIVITY:START -->\n${RAW_LOGS}\n<!-- RECENT_ACTIVITY:END -->"
-          perl -0777 -pi -e "s/<!-- RECENT_ACTIVITY:START -->.*?<!-- RECENT_ACTIVITY:END -->/${NEW_BLOCK}/s" README.md
+          perl -0777 -pi -e "s|<!-- RECENT_ACTIVITY:START -->.*?<!-- RECENT_ACTIVITY:END -->|${NEW_BLOCK}|s" README.md
 
       - name: Commit and Push Changes
         run: |
