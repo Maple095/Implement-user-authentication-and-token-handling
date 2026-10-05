@@ -1,0 +1,45 @@
+name: Update README Activity
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.REPO_TOKEN }}
+          fetch-depth: 10
+
+      - name: Validate README Markers
+        run: |
+          if ! grep -q "<!-- RECENT_ACTIVITY:START -->" README.md || ! grep -q "<!-- RECENT_ACTIVITY:END -->" README.md; then
+            echo "::error::README markers are missing!"
+            exit 1
+          fi
+
+      - name: Generate Activity Section
+        run: |
+          RAW_LOGS=$(git log -5 --pretty=format:"- %ad \`%h\` %s" --date=short --invert-grep --grep="chore: update recent activity")
+          NEW_BLOCK="<!-- RECENT_ACTIVITY:START -->\n${RAW_LOGS}\n<!-- RECENT_ACTIVITY:END -->"
+          perl -0777 -pi -e "s/<!-- RECENT_ACTIVITY:START -->.*?<!-- RECENT_ACTIVITY:END -->/${NEW_BLOCK}/s" README.md
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          if git diff --staged --quiet; then
+            echo "No changes detected in README."
+          else
+            git commit -m "chore: update recent activity [skip ci]"
+            git push
+          fi
